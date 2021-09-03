@@ -28,10 +28,12 @@ test("renders the contact form header", () => {
 test("renders ONE error message if user enters less then 5 characters into firstname.", async () => {
   render(<ContactForm />);
 
-  const firstNameLength = screen.getByLabelText(/firstName/i);
+  const firstNameLength = screen.getByLabelText(/First Name*/i);
   userEvent.type(firstNameLength, "joe");
 
-  expect(firstNameLength).toHaveValue("joe");
+  const errorTest = screen.queryAllByTestId("error");
+
+  expect(errorTest).toHaveLength(1);
 });
 
 test("renders THREE error messages if user enters no values into any fields.", async () => {
@@ -40,50 +42,62 @@ test("renders THREE error messages if user enters no values into any fields.", a
   const button = screen.getByRole("button");
   userEvent.click(button);
 
-  const firstName = await screen.findByText(/ error: firstName/i);
-  const lastName = await screen.findByText(/ error: lastName/i);
-  const email = await screen.findByText(/ error: email/i);
-  expect(firstName).toBeTruthy();
-  expect(lastName).toBeTruthy();
-  expect(email).toBeTruthy();
+  const firstName = await screen.getByLabelText(/First Name*/i);
+  const lastName = await screen.getByLabelText(/Last Name*/i);
+  const email = await screen.getByLabelText(/Email*/i);
+  userEvent.type(firstName, "");
+  userEvent.type(lastName, "");
+  userEvent.type(email, "");
   //const email = screen.getByLabelText(/email/i);
+  const errorTest = screen.queryAllByTestId("error");
+
+  expect(errorTest).toHaveLength(3);
 });
 
 test("renders ONE error message if user enters a valid first name and last name but no email.", async () => {
   render(<ContactForm />);
 
-  const firstName = screen.getAllByLabelText(/first name/i);
-  userEvent.type(firstName, "Joseph");
-
-  const lastName = screen.getAllByLabelText(/last name/i);
-  userEvent.type(lastName, "Escobedo");
-
-  const email = screen.getAllByLabelText(/email/i);
-  userEvent.type(email, "email here");
-
   const button = screen.getByRole("button");
   userEvent.click(button);
 
-  await waitFor(() => {
-    const error = screen.findAllByTestId("error");
-    expect(error).toHaveLength(1);
-  });
+  const firstName = await screen.getByLabelText(/First Name*/i);
+  const lastName = await screen.getByLabelText(/Last Name*/i);
+  const email = await screen.getByLabelText(/Email*/i);
+  userEvent.type(firstName, "Joseph");
+
+  userEvent.type(lastName, "Escobedo");
+
+  userEvent.type(email, "");
+
+  // const button = screen.getByRole("button");
+  // userEvent.click(button);
+
+  const error = screen.queryAllByTestId("error");
+  expect(error).toHaveLength(1);
 });
 
 test('renders "email must be a valid email address" if an invalid email is entered', async () => {
   render(<ContactForm />);
+
   const email = screen.getByLabelText(/email/i);
   userEvent.type(email, "joegmail.com");
 });
 
 test('renders "lastName is a required field" if an last name is not entered and the submit button is clicked', async () => {
   render(<ContactForm />);
-  const lastName = screen.getByLabelText("/last name*/i");
+  const button = screen.getByRole("button");
+  userEvent.click(button);
+  const firstName = await screen.getByLabelText(/First Name*/i);
+  const lastName = await screen.getByLabelText(/Last Name*/i);
+  const email = await screen.getByLabelText(/Email*/i);
+  userEvent.type(firstName, "Joseph");
+
   userEvent.type(lastName, "");
 
-  const button = screen.getByRole("button");
+  userEvent.type(email, "joe@gmail.com");
 
-  userEvent.click(button);
+  const error = screen.queryAllByTestId("error");
+  expect(error).toHaveLength(1);
 });
 
 test("renders all firstName, lastName and email text when submitted. Does NOT render message if message is not submitted.", async () => {
@@ -103,15 +117,17 @@ test("renders all firstName, lastName and email text when submitted. Does NOT re
 
 test("renders all fields text when all fields are submitted.", async () => {
   render(<ContactForm />);
+
+  const button = screen.getByRole("button");
+  userEvent.click(button);
+
   const firstName = screen.getByLabelText(/first name/i);
   const lastName = screen.getByLabelText(/last name/i);
   const email = screen.getByLabelText(/email/i);
-  const message = screen.getByLabelText(/message/i);
-  const button = screen.getByRole("button");
+  //const message = screen.getByLabelText(/message/i);
 
   userEvent.type(firstName, "Joseph");
   userEvent.type(lastName, "Escobedo");
   userEvent.type(email, "joe@gmail.com");
-  userEvent.type(message, "I am a message");
-  userEvent.click(button);
+  //userEvent.type(message, "I am a message");
 });
